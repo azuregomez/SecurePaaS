@@ -15,7 +15,7 @@ This ARM template deploys:
 Release Notes:
 <ul>
 <li>The template as well as the powershell script follow an easy convention where all resources have the same prefix. The prefix is specified in the template parameters and all other parameters have a default derived from resourceprefix.  The powershell script assumes this convention is followed.
-<li>The script azuredeploy.ps1 includes 3 additional steps: <br>a) Remove a temporary SQL firewall rule  <br>b) Allow the Web App MSI to Get KV secrets.<br> c) Add the secret version in CnString AKV Reference. AKV references will not require version when the feature is released as Generally Available.
+<li>The script azuredeploy.ps1 includes 3 additional steps: <br>a) Remove a temporary SQL firewall rule  <br>b) Allow the Web App MSI to Get KV secrets.<br> c) Add the secret version in CnString AKV Reference. AKV references require secret version.
 <li>For the most restrictive security, Azure Key Vault could have VNet restrictions enabled and allow only requests from the Web App delegated Subnet.  However, Key Vault References do not work with the new VNet Integration - the Key Vault would get the request from one of the default Outbound public IPs of App Service.  
 </ul>
 Deployment Instructions:
