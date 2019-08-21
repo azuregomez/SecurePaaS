@@ -2,7 +2,7 @@ This ARM template deploys:
 <ul>
 <li>VNet with WAF Subnet and App Service delegated subnet and Service Endpoint to SQL DB, AKV
 <li>App Service Plan (Standard, not isolated SKU)
-<li>Web App with the new VNet Integration: https://blogs.msdn.microsoft.com/appserviceteam/2018/10/17/new-app-service-vnet-integration-feature/
+<li>Web App with Regional VNet Integration: https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet
 <li>Code for the Web App. https://github.com/azuregomez/PersonDemo
 <li>SQL Azure DB with firewall configuration to allow App Service delegated Subnet. (Allow All Azure IPs is setup temporarily so the sample DB can be deployed)
 <li>App Gateway with Web Application Firewall in front of the Web Application
