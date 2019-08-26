@@ -26,6 +26,7 @@ Release Notes:
 <li>For the most restrictive security, Azure Key Vault could have VNet restrictions enabled and allow only requests from the Web App delegated Subnet.  However, Key Vault References do not work with the new VNet Integration - the Key Vault would get the request from one of the default Outbound public IPs of App Service.  
 <li>This architecture virtually injects an App Service into a VNet by allowing trafffic exclusively from App Gateway and using a delegated subnet for Outbound access to SQL Azure DB, Storage and potentially to on-prem locations. 
 <li>This solution does NOT provide a dedicated outbound address to the internet. It still uses 4 defined and shared IPs.
+<li>Application Deployment is not restricted. The SCM side of app service does not have IP Restrictions in the template. Since you can restrict traffic to the app separately from the scm site, you can take advantage of that and set service endpoints from another subnet with a jump box or separate App Gateway. (Driving traffic and publishing through the same App Gateway endpoint may be a security flaw)
 </ul>
 Deployment Instructions:
 <ol>
