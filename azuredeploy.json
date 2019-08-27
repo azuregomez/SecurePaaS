@@ -262,8 +262,16 @@
             {
               "name": "[parameters('wafSubnetName')]",
               "properties": {
-                "addressPrefix": "[parameters('wafSubnetPrefix')]"          
-              }
+                "addressPrefix": "[parameters('wafSubnetPrefix')]",
+                "serviceEndpoints": [
+                  {                      
+                      "service": "Microsoft.Web",
+                      "locations": [
+                        "[resourcegroup().location]"
+                      ]
+                  }
+                ]
+              }              
             }           
         ]    
       }        
@@ -284,7 +292,7 @@
     },
     {
         "comments": "Web App",
-        "apiVersion": "2018-02-01",      
+        "apiVersion": "2018-11-01",    
         "type": "Microsoft.Web/sites",
         "name": "[parameters('webAppName')]",
         "location": "[resourceGroup().location]",       
@@ -300,16 +308,17 @@
           "serverFarmId": "[resourceId('Microsoft.Web/serverFarms',parameters('appServicePlanName'))]",
           "siteConfig":{           
             "ipSecurityRestrictions": [
-              {
-                "ipAddress": "[concat(reference(variables('wafPublicIPName')).ipAddress,'/32')]",               
-                "name": "appgateway",
-                "description": "appgateway"
+              {                
+                "VnetSubnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetname'), parameters('WafSubnetName'))]",
+                "name": "appgatewaysubnet",
+                "description": "appgateway subnet"                
               }
             ],
             "connectionStrings": [
               {
                 "name": "[concat('_',parameters('cnStringSecretName'))]",
-                "connectionString": "[variables('cnstrkvref')]"
+                "connectionString": "[variables('cnstrkvref')]",
+                "type": "SQLAzure"
               }
             ]
           }      

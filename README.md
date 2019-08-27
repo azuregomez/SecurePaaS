@@ -10,8 +10,8 @@ This ARM template deploys:
 <li>Web App with Regional VNet Integration: https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet
 <li>Code for the Web App. https://github.com/azuregomez/PersonDemo
 <li>SQL Azure DB with firewall configuration to allow App Service delegated Subnet. (Allow All Azure IPs is setup temporarily so the sample DB can be deployed)
-<li>App Gateway with Web Application Firewall. The Web Application in the Backend Pool.
-<li>Web App IP restrictions to allow trafffic from App Gateway only (from the public IP of App Gateway)
+<li>App Gateway with Web Application Firewall and Service Endpoints to Microsoft.Web. The Web Application in the Backend Pool.
+<li>Web App IP restrictions to allow trafffic from App Gateway only (from the App Gateway Subnet exclusively)
 <li>Managed Service Identity for Web Application
 <li>Azure Key Vault with SQL DB Connection string as secret
 <li>Allow access to KV secrets from Web App with MSI
@@ -20,6 +20,7 @@ https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-referen
 </ul>
 Release Notes:
 <ul>
+<li>Pre-req: Azure Subscription with Contributor role, Powershell 5.1 and Az Cmdlets. Install-Module -Name Az -AllowClobber -Scope AllUsers
 <li>App Gateway is deployed with a Public IP. This means the App Service is accessible from the internet through App Gateway.
 <li>The template as well as the powershell script follow an easy convention where all resources have the same prefix. The prefix is specified in the template parameters and all other parameters have a default derived from resourceprefix.  The powershell script assumes this convention is followed.
 <li>The script azuredeploy.ps1 includes 3 additional steps: <br>a) Remove a temporary SQL firewall rule  <br>b) Allow the Web App MSI to Get KV secrets.<br> c) Add the secret version in CnString AKV Reference. AKV references require secret version.
@@ -43,8 +44,6 @@ Application Architecture:
 The following changes would be required:
 <ol>
 <li>App Gateway needs to be deployed with an internal IP, not external
-<li>The App Gateway Subnet need Service Endpoint to Microsoft.Web. 
-<li>The App Service Ip restriction has to Allow the App Gateway Subnet only.
 <li>Hybrid connectivity: VPN or VNet Gateway (ExpressRoute)
 </ol>
 App Service would have the following architecture:
