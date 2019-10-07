@@ -1,5 +1,5 @@
 <h2>Secure PaaS in Azure</h2>
-This solution template deploys:
+This solution deploys:
 <ul>
 <li>VNet with 2 subnets
 <ol>
