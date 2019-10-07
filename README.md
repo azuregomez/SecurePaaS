@@ -1,5 +1,5 @@
 <h2>Secure PaaS in Azure</h2>
-This ARM template deploys:
+This solution template deploys:
 <ul>
 <li>VNet with 2 subnets
 <ol>
