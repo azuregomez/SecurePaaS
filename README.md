@@ -1,7 +1,8 @@
 <h2>Secure PaaS in Azure</h2>
 <h3>Business Case</h3>
 Azure PaaS Services like App Service, SQL Database and Storage Accounts expose a public endpoint that may be perceived as a security risk.
-We want to "lock down" PaaS Services with network security so that the services are only available within private IP spaces.
+We want to "lock down" PaaS Services with network security so that the services are only available within private IP spaces.<br>
+Application secrets such as database and storage credentials should not be in app configuration files where they can end up in source control and are visible in plain text.  
 <h3>Solution</h3>
 For App Service, the most secure option is the Isolated SKU, AKA App Service Environment. An App Service Environment injects all the App Service infrastructure in your VNet:<br/>
 https://docs.microsoft.com/en-us/azure/app-service/environment/intro<br/>
@@ -24,16 +25,31 @@ It is possible to lock down inbound traffic to a PaaS Service and isolate the en
 <li>Creating a Service Endpoint to the PaaS Service from the subnet that will access the service.  In this case, it will be the Delegated Subnet that has App Service Regional VNet Integration.
 <li>Leverage network restrictions (firewall rules) in the service. Storage, Key Vault and SQL DB support this functionality and combined with Service endpoints will allow traffic exclusively from a cinfigured subnet - in this case, the App Service delegated subnet.
 </ul>
-This solution deploys:
+For application secrets the solution leverages Azure Key Vault and Managed Service Identity for App Service.<br/>
+https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview<br>
+This way AKV only allows access to secrets from the identity that is system assigned to the application.<br>
+The solution also leverages AKV references to avoid code changes to access secrets:<br>
+https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references
+<h4>Solution Architecture:</h4>
+<br/><br/>
+<img src="https://storagegomez.blob.core.windows.net/public/images/securepaas-rvi.png">
+<br>
+<h4>Solution Limitations</h4>
+<ul>
+<li>The App Service delegated subnet cannot have a Route Table. No UDR means no outbound traffic inspection through a firewall. 
+<li>Regional VNet integration leverages the delegated subnet for outbound to the VNet, peered VNets, on-prem and other PaaS Services. It does not use the delegated subnet for outbound traffic to the internet.
+<li>
+</ul>
+<h4>This solution deploys:</h4>
 <ul>
 <li>VNet with 2 subnets
 <ol>
     <li>WAF Subnet 
     <li>App Service Delegated Subnet with Service Endpoint to SQL DB, AKV
 </ol>
-<li>App Service Plan (Standard, not isolated SKU)
-<li>Web App with Regional VNet Integration: https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet
-<li>Code for the Web App. https://github.com/azuregomez/PersonDemo
+<li>App Service Plan (Standard, not isolated SKU, no ASE)
+<li>Web App with Regional VNet Integration.
+<li>Sample Code for the Web App. https://github.com/azuregomez/PersonDemo
 <li>SQL Azure DB with firewall configuration to allow App Service delegated Subnet. (Allow All Azure IPs is setup temporarily so the sample DB can be deployed)
 <li>App Gateway with Web Application Firewall and Service Endpoints to Microsoft.Web. The Web Application in the Backend Pool.
 <li>Web App IP restrictions to allow trafffic from App Gateway only (from the App Gateway Subnet exclusively)
@@ -41,17 +57,17 @@ This solution deploys:
 <li>Azure Key Vault with SQL DB Connection string as secret
 <li>Allow access to KV secrets from Web App with MSI
 <li>Web App Portal configuration for Connection String using Key Vault Reference in the format: @Microsoft.KeyVault(SecretUri=https://{resourceprefix}-keyvault.vault.azure.net/secrets/dbcnstr). 
-https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references
+
 </ul>
 Release Notes:
 <ul>
-<li>Pre-req: Azure Subscription with Contributor role, Powershell 5.1 and Az Cmdlets. Install-Module -Name Az -AllowClobber -Scope AllUsers
+<li>Pre-req: Azure Subscription with Contributor role, Powershell 5.1 and Az Cmdlets. <br>
+Install-Module -Name Az -AllowClobber -Scope AllUsers
 <li>App Gateway is deployed with a Public IP. This means the App Service is accessible from the internet through App Gateway.
 <li>The template as well as the powershell script follow an easy convention where all resources have the same prefix. The prefix is specified in the template parameters and all other parameters have a default derived from resourceprefix.  The powershell script assumes this convention is followed.
 <li>The script azuredeploy.ps1 includes 3 additional steps: <br>a) Remove a temporary SQL firewall rule  <br>b) Allow the Web App MSI to Get KV secrets.<br> c) Add the secret version in CnString AKV Reference. AKV references require secret version.
 <li>For the most restrictive security, Azure Key Vault could have VNet restrictions enabled and allow only requests from the Web App delegated Subnet.  However, Key Vault References do not work with the new VNet Integration - the Key Vault would get the request from one of the default Outbound public IPs of App Service.  
 <li>This architecture virtually injects an App Service into a VNet by allowing trafffic exclusively from App Gateway and using a delegated subnet for Outbound access to SQL Azure DB, Storage and potentially to on-prem locations. 
-<li>This solution does NOT provide a dedicated outbound address to the internet. It still uses 4 defined and shared IPs.
 <li>Application Deployment is not restricted. The SCM side of app service does not have IP Restrictions in the template. Since you can restrict traffic to the app separately from the scm site, you can take advantage of that and set service endpoints from another subnet with a jump box or separate App Gateway. (Driving traffic and publishing through the same App Gateway endpoint may be a security flaw)
 </ul>
 Deployment Instructions:
@@ -61,10 +77,6 @@ Deployment Instructions:
 <li>Run azuredeploy.ps1
 <li>Browse to the AppGateway IP or DNS name. The Web App will not respond on azurewebsites.net because the WAF is in front.
 </ol>
-Application Architecture:
-<br/><br/>
-<img src="https://storagegomez.blob.core.windows.net/public/images/securepaas-rvi.png">
-<br>
 <h3>What if I want the application to be ONLY available from my corporate Network?</h3>
 The following changes would be required:
 <ol>
