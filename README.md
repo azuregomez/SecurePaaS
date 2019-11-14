@@ -1,4 +1,29 @@
 <h2>Secure PaaS in Azure</h2>
+<h3>Business Case</h3>
+Azure PaaS Services like App Service, SQL Database and Storage Accounts expose a public endpoint that may be perceived as a security risk.
+We want to "lock down" PaaS Services with network security so that the services are only available within private IP spaces.
+<h3>Solution</h3>
+For App Service, the most secure option is the Isolated SKU, AKA App Service Environment. An App Service Environment injects all the App Service infrastructure in your VNet:<br/>
+https://docs.microsoft.com/en-us/azure/app-service/environment/intro<br/>
+However, the ASE comes with a considerable cost and should be considered only in cases where there is a requirement for outbound traffic inspection and the ASE is reused to deploy multiple applications as an Enterprise Architecture strategy.<br/>
+It is possible to replicate most of the ASE behavior and isolate App Service endpoints:
+<ul>
+<li>Inbound: Place App Service behind a Web Application Firewall so that the application will not take any trafffic that does not come from the WAF.  This is accomplished by:
+    <ul> 
+    <li>Service Endpoint to App Service in the WAF Subnet.  Service Endpoints operate as a routing shortcut to the Service that is enabled for. But not to a specific instance of the service. In this case, The WAF Subnet has Service Endpoint to App Service so it will have a shortcut to the service.<br>https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview
+    <li>App Service Access Restrictions.  The App Service instance is configured to allow inbound traffic exclusively from the private IP space of the WAF.
+    </ul>
+<li>Outbound: Leverage Regional VNet Integration. This way the Application will use an IP from a private subnet to reach out to other PaaS Services such as SQL Database, Key Vault and Storage.  This private IP will also be used for traffic going from the App Service instance to other infrastructure in the VNet, peered VNets and on-premise.  Regional VNet integration requires a dedicated, delegated subnet that will be used exclusively by App Service.<br>
+https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet
+</ul>
+For other PaaS Services, the most secure solution is Private Link:<br/>
+https://docs.microsoft.com/en-us/azure/private-link/private-link-overview<br>
+However, Private Link is still in preview (as of November 2019) so we have to consider other options.
+It is possible to lock down inbound traffic to a PaaS Service and isolate the endpoints by:
+<ul>
+<li>Creating a Service Endpoint to the PaaS Service from the subnet that will access the service.  In this case, it will be the Delegated Subnet that has App Service Regional VNet Integration.
+<li>Leverage network restrictions (firewall rules) in the service. Storage, Key Vault and SQL DB support this functionality and combined with Service endpoints will allow traffic exclusively from a cinfigured subnet - in this case, the App Service delegated subnet.
+</ul>
 This solution deploys:
 <ul>
 <li>VNet with 2 subnets
