@@ -60,7 +60,7 @@ https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-referen
 <li>Web App Portal configuration for Connection String using Key Vault Reference in the format: @Microsoft.KeyVault(SecretUri=https://{resourceprefix}-keyvault.vault.azure.net/secrets/dbcnstr). 
 
 </ul>
-Release Notes:
+<h4>Release Notes:</h4>
 <ul>
 <li>Pre-req: Azure Subscription with Contributor role, Powershell 5.1 and Az Cmdlets. <br>
 Install-Module -Name Az -AllowClobber -Scope AllUsers
@@ -71,7 +71,7 @@ Install-Module -Name Az -AllowClobber -Scope AllUsers
 <li>This architecture virtually injects an App Service into a VNet by allowing trafffic exclusively from App Gateway and using a delegated subnet for Outbound access to SQL Azure DB, Storage and potentially to on-prem locations. 
 <li>Application Deployment is not restricted. The SCM side of app service does not have IP Restrictions in the template. Since you can restrict traffic to the app separately from the scm site, you can take advantage of that and set service endpoints from another subnet with a jump box or separate App Gateway. (Driving traffic and publishing through the same App Gateway endpoint may be a security flaw)
 </ul>
-Deployment Instructions:
+<h4>Deployment Instructions:</h4>
 <ol>
 <li>Clone this repo
 <li>Update the parameter file with your Resource Prefix and your AAD Object ID.  This is required so the template can add you as a Key Vault authorized principal. You can get your AAD Object id with the Powershell cmdlet Get-AzureRmADUser
