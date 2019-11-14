@@ -64,6 +64,7 @@ https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-referen
 <ul>
 <li>Pre-req: Azure Subscription with Contributor role, Powershell 5.1 and Az Cmdlets. <br>
 Install-Module -Name Az -AllowClobber -Scope AllUsers
+<li>Regional VNet integration is also in preview, but it is supported for prod deployments<br>
 <li>App Gateway is deployed with a Public IP. This means the App Service is accessible from the internet through App Gateway.
 <li>The template as well as the powershell script follow an easy convention where all resources have the same prefix. The prefix is specified in the template parameters and all other parameters have a default derived from resourceprefix.  The powershell script assumes this convention is followed.
 <li>The script azuredeploy.ps1 includes 3 additional steps: <br>a) Remove a temporary SQL firewall rule  <br>b) Allow the Web App MSI to Get KV secrets.<br> c) Add the secret version in CnString AKV Reference. AKV references require secret version.
