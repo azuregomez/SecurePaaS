@@ -12,7 +12,8 @@ It is possible to replicate most of the ASE behavior and isolate App Service end
 <li>Inbound: Place App Service behind a Web Application Firewall so that the application will not take any trafffic that does not come from the WAF.  This is accomplished by:
     <ul> 
     <li>Service Endpoint to App Service in the WAF Subnet.  Service Endpoints operate as a routing shortcut to the Service that is enabled for. But not to a specific instance of the service. In this case, The WAF Subnet has Service Endpoint to App Service so it will have a shortcut to the service.<br>https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview
-    <li>App Service Access Restrictions.  The App Service instance is configured to allow inbound traffic exclusively from the private IP space of the WAF.
+    <li>App Service Access Restrictions.  The App Service instance is configured to allow inbound traffic exclusively from the private IP space of the WAF.<br>
+    https://docs.microsoft.com/en-us/azure/app-service/app-service-ip-restrictions
     </ul>
 <li>Outbound: Leverage Regional VNet Integration. This way the Application will use an IP from a private subnet to reach out to other PaaS Services such as SQL Database, Key Vault and Storage.  This private IP will also be used for traffic going from the App Service instance to other infrastructure in the VNet, peered VNets and on-premise.  Regional VNet integration requires a dedicated, delegated subnet that will be used exclusively by App Service.<br>
 https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet
