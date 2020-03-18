@@ -1,4 +1,5 @@
 <h2>Secure PaaS in Azure</h2>
+This repo is now deprecated until further notice.  With ethe General Availability of Private Link, the template will be updated to leverage Private Link for App Service, SQL Azure DB and Azure Key Vault.
 <h3>Business Case</h3>
 Azure PaaS Services like App Service, SQL Database and Storage Accounts expose a public endpoint that may be perceived as a security risk.
 We want to "lock down" PaaS Services with network security so that the services are only available within private IP spaces.<br>
