@@ -1,4 +1,7 @@
 <h2>Secure PaaS in Azure</h2>
+THIS IS DEPRECATED. Check this one out:
+https://github.com/azuregomez/SecureApp
+<br/>
 With the General Availability of Private Link, the template will be updated to leverage Private Link for App Service, SQL Azure DB and Azure Key Vault. But that will happen when Private Link is GA for App Service.
 <h3>Business Case</h3>
 Azure PaaS Services like App Service, SQL Database and Storage Accounts expose a public endpoint that may be perceived as a security risk.
