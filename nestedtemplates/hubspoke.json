@@ -16,10 +16,7 @@
          },
          "firewallSubnetPrefix": {
              "type": "string"
-         },
-         "bastionSubnetName": {
-             "type": "string"
-         },
+         },        
          "bastionSubnetPrefix": {
              "type": "string"
          },
@@ -28,17 +25,11 @@
          },
          "SpokeVnetAddressPrefix": {
              "type": "string"
-         },
-         "appServiceInboundSubnetName": {
+         },        
+         "appServiceSubnetName": {
              "type": "string"
          },
-         "appServiceInboundSubnetPrefix": {
-             "type": "string"
-         },
-         "appServiceOutboundSubnetName": {
-             "type": "string"
-         },
-         "appServiceOutboundSubnetPrefix": {
+         "appServiceSubnetPrefix": {
              "type": "string"
          },
          "sqlSubnetName": {
@@ -51,6 +42,12 @@
              "type": "string"
          },
          "keyvaultSubnetPrefix": {
+             "type": "string"
+         },
+         "vmSubnetName": {
+             "type": "string"
+         },
+         "vmSubnetPrefix": {
              "type": "string"
          }
     },  
@@ -81,9 +78,15 @@
               }              
             },            
             {
-              "name": "[parameters('bastionSubnetName')]",
+              "name": "AzureBastionSubnet",
               "properties": {
                 "addressPrefix": "[parameters('bastionSubnetPrefix')]"                
+              }              
+            },
+            {
+              "name": "[parameters('vmSubnetName')]",
+              "properties": {
+                "addressPrefix": "[parameters('vmSubnetPrefix')]"               
               }              
             }
         ]    
@@ -101,29 +104,21 @@
               "[parameters('SpokeVnetAddressPrefix')]"
             ]
           },
-        "subnets": [
+        "subnets": [             
             {
-              "name": "[parameters('appServiceInboundSubnetName')]",
+              "name": "[parameters('appServiceSubnetName')]",
               "properties": {
-                "addressPrefix": "[parameters('appServiceInboundSubnetPrefix')]",
-                "privateEndpointNetworkPolicies": "Disabled"
-              }              
-            }, 
-            {
-              "name": "[parameters('appServiceOutboundSubnetName')]",
-              "properties": {
-                "addressPrefix": "[parameters('appServiceOutboundSubnetPrefix')]",                                      
+                "addressPrefix": "[parameters('appServiceSubnetPrefix')]",                                      
                 "delegations": [
                   {
-                      "name": "delegation",                      
+                      "name": "ase-delegation",                      
                       "properties": {
-                          "serviceName": "Microsoft.Web/serverfarms",
-                          "actions": [
-                              "Microsoft.Network/virtualNetworks/subnets/action"
-                          ]
+                          "serviceName": "Microsoft.Web/hostingEnvironments"                          
                       }
                   }
-              ]
+              ],
+              "privateEndpointNetworkPolicies": "Enabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
               }
             },            
             {
