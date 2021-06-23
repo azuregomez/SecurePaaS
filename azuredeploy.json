@@ -303,7 +303,7 @@
                         "value": "[parameters('vmpassword')]"
                     },
                     "vnetname":{
-                        "value": "[parameters('spokeVnetName')]"
+                        "value": "[parameters('hubVnetName')]"
                     },
                     "subnetname":{
                         "value": "[parameters('vmsubnetName')]"
