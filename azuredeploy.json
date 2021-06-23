@@ -175,12 +175,20 @@
             "metadata": {
               "description": "VM password"
             }
+        },
+        "aseName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('resourceNamePrefix'),'ase')]",
+            "metadata": {
+              "description": "Name of ASE"
+            }
         }
     },
     "variables":{
       "hubspokeNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/hubspoke.json', parameters('_artifactsLocationSasToken')))]",      
       "vnetPeeringNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnetpeering.json', parameters('_artifactsLocationSasToken')))]",
       "vmNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vm.json', parameters('_artifactsLocationSasToken')))]",
+      "aseNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/asev3.json', parameters('_artifactsLocationSasToken')))]",
       "bastionName" : "[concat(parameters('resourceNamePrefix'),'-bastion')]",
       "bastionPublicIpName": "[concat(parameters('resourceNamePrefix'),'-bastion-pip')]"
     },
@@ -278,7 +286,7 @@
     },
      {
             "condition": "[parameters('deployVM')]",
-            "comments": "vm.json nested ARM template for VM",
+            "comments": "vm.json nested ARM template for VM and Az Bastion",
             "name": "linkedTemplate-vm",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
@@ -318,6 +326,33 @@
                     }
                 }
             }
-    }
+    },
+     {
+            "comments": "asev3.json nested ARM template for ASE",
+            "name": "linkedTemplate-asev3",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [                
+                "linkedTemplate-hubspoke"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('aseNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "aseVnetName":{
+                        "value": "[parameters('spokeVnetName')]"
+                    },
+                    "aseSubnetName":{
+                        "value": "[parameters('appservicesubnetName')]"
+                    },
+                    "aseName":{
+                        "value": "[parameters('aseName')]"
+                    }
+                }
+            }
+    },
   ]
 }

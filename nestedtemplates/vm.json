@@ -108,7 +108,10 @@
             "name": "[parameters('bastionname')]",
             "type": "Microsoft.Network/bastionHosts",
             "apiVersion": "2020-07-01",
-            "location": "[resourceGroup().location]",            
+            "location": "[resourceGroup().location]",       
+             "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
+            ],     
             "properties": {
                 "ipConfigurations": [
                 {
