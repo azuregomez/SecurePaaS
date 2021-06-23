@@ -14,13 +14,22 @@
          "vmpassword" : {
             "type": "string"    
          },
-         "vnetname" : {
+         "vnetName" : {
             "type": "string"    
          },
-         "subnetname" : {
+         "subnetName" : {
             "type": "string"    
+         },
+         "bastionName": {
+             "type": "string"    
+         },
+         "publicIpAddressName": {
+             "type": "string"    
          }
     },    
+    "variables" : {
+        "azurebastionsubnetname" : "AzureBastionSubnet"
+    },
     "resources": [   
          {
             "comments": "Network Interfaces",
@@ -80,6 +89,43 @@
                 ]
                 }
             }
-        }
+        },
+        {
+            "comments" : "public IP for Bastion",
+            "apiVersion": "2019-02-01",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "name": "[parameters('publicIpAddressName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static"
+            },
+            "tags": {}
+        },
+        {
+            "name": "[parameters('bastionname')]",
+            "type": "Microsoft.Network/bastionHosts",
+            "apiVersion": "2020-07-01",
+            "location": "[resourceGroup().location]",            
+            "properties": {
+                "ipConfigurations": [
+                {
+                    "name": "IpConf",
+                    "properties": {
+                        "subnet": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetname'), variables('azurebastionsubnetname'))]"
+                        },
+                        "publicIPAddress": {
+                            "id": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
+                        },
+                        "privateIPAllocationMethod": "dynamic"
+                    }
+                    
+                }
+                ]                
+            }
+            }
      ]
 }

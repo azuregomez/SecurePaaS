@@ -180,7 +180,9 @@
     "variables":{
       "hubspokeNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/hubspoke.json', parameters('_artifactsLocationSasToken')))]",      
       "vnetPeeringNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnetpeering.json', parameters('_artifactsLocationSasToken')))]",
-      "vmNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vm.json', parameters('_artifactsLocationSasToken')))]"
+      "vmNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vm.json', parameters('_artifactsLocationSasToken')))]",
+      "bastionName" : "[concat(parameters('resourceNamePrefix'),'-bastion')]",
+      "bastionPublicIpName": "[concat(parameters('resourceNamePrefix'),'-bastion-pip')]"
     },
     "resources": [       
       {
@@ -246,7 +248,7 @@
 
                 }
             }
-    },    
+    },        
     {
             "comments": "vnetpeering.json nested ARM template for VNet peering",
             "name": "linkedTemplate-vnetpeering",
@@ -307,7 +309,13 @@
                     },
                     "subnetname":{
                         "value": "[parameters('vmsubnetName')]"
-                    }                    
+                    },
+                    "bastionname" :{
+                      "value" : "[variables('bastionName')]"
+                    },
+                    "publicIpAddressName" : {
+                      "value" : "[variables('bastionPublicIpName')]"
+                    }
                 }
             }
     }
