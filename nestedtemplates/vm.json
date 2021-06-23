@@ -1,0 +1,85 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {    
+         "vmname" : {
+            "type": "string"    
+         },
+         "vmsku" : {
+            "type": "string"    
+         },
+         "vmuser" : {
+            "type": "string"    
+         },        
+         "vmpassword" : {
+            "type": "string"    
+         },
+         "vnetname" : {
+            "type": "string"    
+         },
+         "subnetname" : {
+            "type": "string"    
+         }
+    },    
+    "resources": [   
+         {
+            "comments": "Network Interfaces",
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Network/networkInterfaces",            
+            "name": "[concat(parameters('vmname'),'-nic')]",
+            "location": "[resourceGroup().location]",                  
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "subnet": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetname'), parameters('subnetname'))]"
+                            }                
+                        }
+                    }
+                    ]
+            }
+        },    
+        {
+            "comments": "Virtual Machine",
+            "apiVersion": "2019-07-01",
+            "type": "Microsoft.Compute/virtualMachines",            
+            "name": "[parameters('vmname')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [            
+                "[concat(parameters('vmname'),'-nic')]"            
+            ],        
+            "properties": {            
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmsku')]"
+                    },
+                "osProfile": {
+                    "computerName": "[parameters('vmname')]",
+                    "adminUsername": "[parameters('vmuser')]",
+                    "adminPassword": "[parameters('vmpassword')]"                    
+                },
+                "storageProfile": {
+                    "imageReference": {
+                            "publisher": "MicrosoftWindowsServer",
+                            "offer": "WindowsServer",
+                            "sku": "2016-Datacenter",
+                            "version": "latest"
+                    },
+                    "osDisk": {
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }                                 
+                },
+                "networkProfile": {
+                "networkInterfaces": [
+                    {
+                    "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('vmname'), '-nic'))]"
+                    }
+                ]
+                }
+            }
+        }
+     ]
+}

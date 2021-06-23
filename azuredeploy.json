@@ -13,7 +13,7 @@
             "metadata": {
                 "description": "The base URI where artifacts required by this template are located including a trailing '/'"
             },
-            "defaultValue": "https://raw.githubusercontent.com/azuregomez/SecurePaaS/main/"
+            "defaultValue": "https://raw.githubusercontent.com/azuregomez/SecurePaaS/master/"
         },
         "_artifactsLocationSasToken": {
             "type": "secureString",
@@ -147,11 +147,40 @@
         "deployVM": {
             "type": "bool",
             "defaultValue": true
+        },
+        "vmname": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('resourceNamePrefix'),'-vm')]",
+            "metadata": {
+              "description": "Name of VM"
+            }
+        },  
+        "vmsku": {
+            "type": "string",
+            "defaultValue": "Standard_D2s_v3",
+            "metadata": {
+              "description": "VM SKU"
+            }
+        },  
+        "vmuser": {
+            "type": "string",
+            "defaultValue": "azureadmin",
+            "metadata": {
+              "description": "VM user"
+            }
+        },
+        "vmpassword": {
+            "type": "string",
+            "defaultValue": "p@ssw0rd369",
+            "metadata": {
+              "description": "VM password"
+            }
         }
     },
     "variables":{
       "hubspokeNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/hubspoke.json', parameters('_artifactsLocationSasToken')))]",      
-      "vnetPeeringNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnetpeering.json', parameters('_artifactsLocationSasToken')))]"
+      "vnetPeeringNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnetpeering.json', parameters('_artifactsLocationSasToken')))]",
+      "vmNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vm.json', parameters('_artifactsLocationSasToken')))]"
     },
     "resources": [       
       {
@@ -244,6 +273,43 @@
                     }
                 }
             }
-    }    
+    },
+     {
+            "condition": "[parameters('deployVM')]",
+            "comments": "vm.json nested ARM template for VM",
+            "name": "linkedTemplate-vm",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [                
+                "linkedTemplate-hubspoke"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('vmNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "vmname":{
+                        "value": "[parameters('vmname')]"
+                    },
+                    "vmsku":{
+                        "value": "[parameters('vmsku')]"
+                    },
+                    "vmuser":{
+                        "value": "[parameters('vmuser')]"
+                    },
+                    "vmpassword":{
+                        "value": "[parameters('vmpassword')]"
+                    },
+                    "vnetname":{
+                        "value": "[parameters('spokeVnetName')]"
+                    },
+                    "subnetname":{
+                        "value": "[parameters('vmsubnetName')]"
+                    }                    
+                }
+            }
+    }
   ]
 }
