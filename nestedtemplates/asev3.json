@@ -38,16 +38,6 @@
                 "frontEndScaleFactor": 15,
                 "suspended": false                
             }        
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "2018-09-01",
-            "name": "[variables('asefqdn')]",
-            "dependsOn": [          
-                "[concat('Microsoft.Web/serverhostingEnvironmentsFarms/',parameters('aseName'))]"                         
-            ],
-            "location": "global",                    
-            "properties" : {}
         }
      ]
 }
