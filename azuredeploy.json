@@ -403,7 +403,7 @@
                     "uri": "[variables('webappNestedTemplateUri')]"
                 },
                 "parameters": {                   
-                    "aseVName":{
+                    "aseName":{
                         "value": "[parameters('aseName')]"
                     },                  
                     "appServicePlanName":{
