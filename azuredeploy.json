@@ -367,7 +367,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [                
-                "linkedTemplate-hubspoke"
+                "linkedTemplate-asev3"
             ],
             "properties": {
                 "mode": "Incremental",
