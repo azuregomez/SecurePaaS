@@ -1,3 +1,4 @@
+# .\azuredeploy.ps1 -Location "East US" -Parameterfile azuredeploy.parameters.local.json    
 Param(
     [string] [parameter(Mandatory=$true)] $Location,     
     [string] $ParameterFile = 'azuredeploy.parameters.json'

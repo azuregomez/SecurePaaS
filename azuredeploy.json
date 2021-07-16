@@ -182,6 +182,39 @@
             "metadata": {
               "description": "Name of ASE"
             }
+        },
+        "appServicePlanName":{
+            "type": "string",
+            "defaultValue": "[concat(parameters('resourceNamePrefix'),'-asp')]",
+            "metadata": {
+              "description": "Name of ASP"
+            } 
+        },
+        "appServicePlanSKU": {
+          "type": "string",
+          "allowedValues": [           
+            "I1v2",
+            "I2v2",
+            "I3v2"
+          ],
+          "defaultValue": "I1v2",
+          "metadata": {
+            "description": "The pricing tier for the ASP (hosting plan)."
+          }
+        },
+        "appServicePlanCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+              "description": "Capacity."
+            }
+        },
+         "webAppName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('resourceNamePrefix'),'web')]",
+            "metadata": {
+              "description": "Name of Web App"
+            }
         }
     },
     "variables":{
@@ -189,6 +222,7 @@
       "vnetPeeringNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnetpeering.json', parameters('_artifactsLocationSasToken')))]",
       "vmNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vm.json', parameters('_artifactsLocationSasToken')))]",
       "aseNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/asev3.json', parameters('_artifactsLocationSasToken')))]",
+      "webappNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/webapp.json', parameters('_artifactsLocationSasToken')))]",
       "bastionName" : "[concat(parameters('resourceNamePrefix'),'-bastion')]",
       "bastionPublicIpName": "[concat(parameters('resourceNamePrefix'),'-bastion-pip')]"
     },
@@ -327,7 +361,7 @@
                 }
             }
     },
-     {
+    {
             "comments": "asev3.json nested ARM template for ASE",
             "name": "linkedTemplate-asev3",
             "type": "Microsoft.Resources/deployments",
@@ -354,5 +388,38 @@
                 }
             }
     },
+    {
+            "comments": "webapp.json nested ARM template for ASP and webapp",
+            "name": "linkedTemplate-webapp",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [                
+                "linkedTemplate-asev3"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('webappNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "aseVName":{
+                        "value": "[parameters('aseName')]"
+                    },                  
+                    "appServicePlanName":{
+                        "value": "[parameters('appServicePlanName')]"
+                    },
+                    "appServicePlanSKU": {
+                        "value": "[parameters('appServicePlanSKU')]"
+                    },
+                     "appServicePlanCapacity": {
+                        "value": "[parameters('appServicePlanCapacity')]"
+                    },
+                     "webAppName": {
+                        "value": "[parameters('webAppName')]"
+                    }
+                }
+            }
+    }
   ]
 }
