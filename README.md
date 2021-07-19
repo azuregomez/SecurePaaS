@@ -14,4 +14,4 @@ Green field or .net application migration with a SQL Server back end the followi
 * Outbound traffic from the Web App to SQL Database and other in-network resources (including on-premise) routed to a firewall for inspection.
 * Secrets like database connection strings not available in code or application configuration.
 ## Architecture
-![Secure PaaS](https://github.com/azuregomez/securepaas/blob/main/architecture.png)
+![Secure PaaS](https://github.com/azuregomez/securepaas/blob/main/arcitecture.png)
