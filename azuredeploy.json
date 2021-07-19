@@ -140,7 +140,7 @@
             "description": "Object Id of the AD user. Get using Get-AzADUser or Get-AzADServicePrincipal cmdlets"
           }
         },        
-        "deployFirewall": {
+        "deployApp": {
             "type": "bool",
             "defaultValue": true
         },
@@ -362,6 +362,7 @@
             }
     },
     {
+            "condition": "[parameters('deployApp')]",
             "comments": "asev3.json nested ARM template for ASE",
             "name": "linkedTemplate-asev3",
             "type": "Microsoft.Resources/deployments",
@@ -389,6 +390,7 @@
             }
     },
     {
+             "condition": "[parameters('deployApp')]",
             "comments": "webapp.json nested ARM template for ASP and webapp",
             "name": "linkedTemplate-webapp",
             "type": "Microsoft.Resources/deployments",

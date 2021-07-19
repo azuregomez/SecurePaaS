@@ -7,3 +7,11 @@
 * Free App Service and Database Migration Assistants
 * Leverage full network security and integration, with internet traffic blocked, firewalls protecting your deployment and supporting hybrid applications that integrate securely with other services in your network.
 * Inject App Service into your Virtual Network without price penalty and with full control of your network security.
+## Technical Requirements of the solution presented
+Green field or .net application migration with a SQL Server back end the following Security features:
+* No public endpoints available for Web Application or SQL Database.
+* Web Application Firewall in front of Web Application to protect against the top 10 OWASP threats
+* Outbound traffic from the Web App to SQL Database and other in-network resources (including on-premise) routed to a firewall for inspection.
+* Secrets like database connection strings not available in code or application configuration.
+## Architecture
+![Secure PaaS](https://github.com/azuregomez/securepaas/blob/main/architecture.png)
