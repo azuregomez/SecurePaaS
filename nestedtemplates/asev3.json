@@ -13,7 +13,8 @@
         }        
     },   
     "variables": {        
-        "asefqdn" : "[concat(parameters('asename'),'.appserviceenvironment.net')]"
+        "asefqdn" : "[concat(parameters('asename'),'.appserviceenvironment.net')]",
+        "ilbMode" : 3
     },
     "resources": [   
          {
@@ -26,11 +27,12 @@
             "properties": {
                 "dedicatedHostCount": "0",
                 "zoneRedundant": false,
-                "InternalLoadBalancingMode":  "Web, Publishing",
+                "InternalLoadBalancingMode":  "[variables('ilbMode')]",
                 "virtualNetwork": {
                     "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('aseVnetName'),parameters('aseSubnetName'))]"
                 }
-            }        
+            },
+             "tags": {}        
         },
         {
             "apiVersion": "2018-09-01",
