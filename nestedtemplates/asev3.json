@@ -20,7 +20,7 @@
          {
             "comments": "App Service Environment v3",
             "type": "Microsoft.Web/hostingEnvironments",
-            "apiVersion": "2019-08-01",
+            "apiVersion": "2019-09-01",
             "name": "[parameters('aseName')]",
             "location": "[resourceGroup().location]",            
             "kind": "ASEV3",
