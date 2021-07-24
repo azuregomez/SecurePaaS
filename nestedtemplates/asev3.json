@@ -10,7 +10,10 @@
         },
          "aseName" : {
             "type": "string"    
-        }        
+        },
+        "location" : {
+            "type": "string"
+        }
     },   
     "variables": {        
         "asefqdn" : "[concat(parameters('asename'),'.appserviceenvironment.net')]",
@@ -22,7 +25,7 @@
             "type": "Microsoft.Web/hostingEnvironments",
             "apiVersion": "2020-09-01",
             "name": "[parameters('aseName')]",
-            "location": "[resourceGroup().location]",            
+            "location": "[parameters('location')]",            
             "kind": "ASEV3",
             "properties": {
                 "dedicatedHostCount": "0",

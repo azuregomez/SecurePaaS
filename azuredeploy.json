@@ -385,6 +385,9 @@
                     },
                     "aseName":{
                         "value": "[parameters('aseName')]"
+                    },
+                    "location":{
+                        "value": "[resourceGroup().location]"
                     }
                 }
             }
