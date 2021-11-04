@@ -423,7 +423,10 @@
                     "contentVersion": "1.0.0.0",
                     "uri": "[variables('aseNestedTemplateUri')]"
                 },
-                "parameters": {                   
+                "parameters": {      
+                    "hubVnetName":{
+                        "value": "[parameters('hubVnetName')]"
+                    },          
                     "aseVnetName":{
                         "value": "[parameters('spokeVnetName')]"
                     },
@@ -432,9 +435,6 @@
                     },
                     "aseName":{
                         "value": "[parameters('aseName')]"
-                    },
-                    "location":{
-                        "value": "[resourceGroup().location]"
                     }
                 }
             }
