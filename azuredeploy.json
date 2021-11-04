@@ -215,6 +215,48 @@
             "metadata": {
               "description": "Name of Web App"
             }
+        },
+        "sqlServerName": {
+          "type": "string",
+          "defaultValue":"[concat(parameters('resourceNamePrefix'),'-sqlserver')]",
+          "metadata": {
+            "description": "sql server name."
+          }
+        },
+        "sqlAdministratorLogin": {
+          "type": "string",
+          "defaultValue": "azureadmin",
+          "metadata": {
+              "description": "Username for SQL Admin."
+          }
+        },
+        "sqlAdministratorPassword": {
+            "type": "securestring",
+            "defaultValue": "p@ssw0rd1!",
+            "metadata": {
+            "description": "Password for the SQL."
+            }
+        },
+        "sqlDatabaseName": {
+          "type": "string",
+          "defaultValue":"[concat(parameters('resourceNamePrefix'),'sqldb')]",
+          "metadata": {
+            "description": "sql server db name."
+          }
+        },
+        "sqldatabaseBacpacUrl":{
+          "type": "string",
+          "defaultValue": "https://storagegomez.blob.core.windows.net/public/sports.bacpac",
+          "metadata": {
+            "description": "sql server bacpac location"
+          }
+        },
+        "appgwyName":{
+          "type": "string",
+          "defaultValue": "[concat(parameters('resourceNamePrefix'),'-appgwy')]",
+          "metadata": {
+              "description": "App Gateway Name."
+          }
         }
     },
     "variables":{
@@ -223,8 +265,13 @@
       "vmNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vm.json', parameters('_artifactsLocationSasToken')))]",
       "aseNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/asev3.json', parameters('_artifactsLocationSasToken')))]",
       "webappNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/webapp.json', parameters('_artifactsLocationSasToken')))]",
+      "cnStrNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/cnstr.json', parameters('_artifactsLocationSasToken')))]",
+      "appgatewayNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/appgateway.json', parameters('_artifactsLocationSasToken')))]",
+      "wafSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubvnetName'), parameters('wafSubnetName'))]",                              
       "bastionName" : "[concat(parameters('resourceNamePrefix'),'-bastion')]",
-      "bastionPublicIpName": "[concat(parameters('resourceNamePrefix'),'-bastion-pip')]"
+      "bastionPublicIpName": "[concat(parameters('resourceNamePrefix'),'-bastion-pip')]",
+      "sqldbConnectionStringName": "dbcnstr",      
+      "secretsqlcnstr": "[concat('Server=tcp:',parameters('sqlServerName'),'.database.windows.net,1433;Initial Catalog=',parameters('sqldatabasename'), ';User ID=', parameters('sqlAdministratorLogin'), ';Password=', parameters('sqlAdministratorPassword'),';')]"
     },
     "resources": [       
       {
@@ -393,7 +440,7 @@
             }
     },
     {
-             "condition": "[parameters('deployApp')]",
+            "condition": "[parameters('deployApp')]",
             "comments": "webapp.json nested ARM template for ASP and webapp",
             "name": "linkedTemplate-webapp",
             "type": "Microsoft.Resources/deployments",
@@ -422,6 +469,41 @@
                     },
                      "webAppName": {
                         "value": "[parameters('webAppName')]"
+                    }
+                }
+            }
+    },
+    
+    {
+            "comments": "appgateway.json nested ARM template for App Gateway",
+            "name": "linkedTemplate-appgateway",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [                
+                "linkedTemplate-hubspoke",
+                "linkedTemplate-webapp"                
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('appgatewayNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "domainNameLabel" :{
+                        "value": "[parameters('resourceNamePrefix')]"
+                    },                                        
+                    "appgwyName": {
+                        "value": "[parameters('appgwyName')]"
+                    },
+                    "aseName": {
+                        "value": "[parameters('aseName')]"
+                    },
+                    "webAppName": {
+                        "value": "[parameters('webAppName')]"
+                    },
+                    "wafSubnetRef": {
+                        "value": "[variables('wafSubnetRef')]"
                     }
                 }
             }

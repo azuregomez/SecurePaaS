@@ -2,6 +2,9 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {    
+        "hubVnetName": {
+            "type": "string"
+        },
         "aseVnetName": {
             "type": "string"
         },
@@ -25,7 +28,7 @@
             "type": "Microsoft.Web/hostingEnvironments",
             "apiVersion": "2020-09-01",
             "name": "[parameters('aseName')]",
-            "location": "East US",            
+            "location": "[resourceGroup().location]",           
             "kind": "ASEV3",
             "properties": {
                 "dedicatedHostCount": "0",
@@ -56,6 +59,21 @@
                     "properties": {
                         "virtualNetwork": {
                             "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('aseVnetName'))]"
+                        },
+                        "registrationEnabled": false
+                    },
+                    "dependsOn": [
+                        "[concat('Microsoft.Network/privateDnsZones/', variables('asefqdn'))]"
+                    ]
+                },
+                {
+                    "apiVersion": "2018-09-01",
+                    "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                    "name": "[concat(variables('asefqdn'), '/hubLink')]",
+                    "location": "global",
+                    "properties": {
+                        "virtualNetwork": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('hubVnetName'))]"
                         },
                         "registrationEnabled": false
                     },
