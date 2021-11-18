@@ -264,12 +264,14 @@
       "vnetPeeringNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vnetpeering.json', parameters('_artifactsLocationSasToken')))]",
       "vmNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vm.json', parameters('_artifactsLocationSasToken')))]",
       "aseNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/asev3.json', parameters('_artifactsLocationSasToken')))]",
+      "dnsvnetlinkNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/dnsvnetlink.json', parameters('_artifactsLocationSasToken')))]",
       "webappNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/webapp.json', parameters('_artifactsLocationSasToken')))]",
       "cnStrNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/cnstr.json', parameters('_artifactsLocationSasToken')))]",
       "appgatewayNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/appgateway.json', parameters('_artifactsLocationSasToken')))]",
       "wafSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubvnetName'), parameters('wafSubnetName'))]",                              
       "bastionName" : "[concat(parameters('resourceNamePrefix'),'-bastion')]",
       "bastionPublicIpName": "[concat(parameters('resourceNamePrefix'),'-bastion-pip')]",
+      "sqldbNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/sqldb.json', parameters('_artifactsLocationSasToken')))]",
       "sqldbConnectionStringName": "dbcnstr",      
       "secretsqlcnstr": "[concat('Server=tcp:',parameters('sqlServerName'),'.database.windows.net,1433;Initial Catalog=',parameters('sqldatabasename'), ';User ID=', parameters('sqlAdministratorLogin'), ';Password=', parameters('sqlAdministratorPassword'),';')]"
     },
@@ -423,10 +425,7 @@
                     "contentVersion": "1.0.0.0",
                     "uri": "[variables('aseNestedTemplateUri')]"
                 },
-                "parameters": {      
-                    "hubVnetName":{
-                        "value": "[parameters('hubVnetName')]"
-                    },          
+                "parameters": {                                   
                     "aseVnetName":{
                         "value": "[parameters('spokeVnetName')]"
                     },
@@ -435,6 +434,60 @@
                     },
                     "aseName":{
                         "value": "[parameters('aseName')]"
+                    }
+                }
+            }
+    },
+    {
+            "comments": "dnsvnetlink.json nested ARM template for ASE/Spoke",
+            "name": "linkedTemplate-ase-spoke-vnet-link",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "linkedTemplate-asev3"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('dnsvnetLinkNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "vnet" :{
+                        "value": "[parameters('spokevnetName')]"
+                    },         
+                    "suffix" : {
+                        "value": "ase-spoke-link"
+                    },                              
+                     "privateDNSZoneName": {
+                        "value": "[concat(parameters('asename'),'.appserviceenvironment.net')]"
+                    }
+                }
+            }
+    },
+    {
+            "comments": "dnsvnetlink.json nested ARM template for ASE/Hub",
+            "name": "linkedTemplate-ase-hub-vnet-link",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "linkedTemplate-asev3"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('dnsvnetLinkNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "vnet" :{
+                        "value": "[parameters('hubvnetName')]"
+                    },         
+                    "suffix" : {
+                        "value": "ase-spoke-link"
+                    },                              
+                     "privateDNSZoneName": {
+                        "value": "[concat(parameters('asename'),'.appserviceenvironment.net')]"
                     }
                 }
             }
@@ -473,7 +526,39 @@
                 }
             }
     },
-    
+    {
+            "comments": "sqldb.json nested ARM template for SQL server and database with bacpac deployed",
+            "name": "linkedTemplate-sql-db",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [                
+                "linkedTemplate-hubspoke"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('sqldbNestedTemplateUri')]"
+                },
+                "parameters": {
+                    "sqlserverName":{
+                        "value": "[parameters('sqlServerName')]"
+                    },
+                    "sqlAdministratorLogin": {
+                        "value": "[parameters('sqlAdministratorLogin')]"
+                    },                   
+                    "sqlAdministratorPassword": {
+                        "value": "[parameters('sqlAdministratorPassword')]"
+                    },
+                    "sqlDatabaseName": {
+                        "value": "[parameters('sqlDatabaseName')]"
+                    },
+                    "sqldatabaseBacpacUrl": {
+                        "value": "[parameters('sqldatabaseBacpacUrl')]"
+                    }
+                }
+            }
+    },
     {
             "comments": "appgateway.json nested ARM template for App Gateway",
             "name": "linkedTemplate-appgateway",
@@ -481,7 +566,8 @@
             "apiVersion": "2020-06-01",
             "dependsOn": [                
                 "linkedTemplate-hubspoke",
-                "linkedTemplate-webapp"                
+                "linkedTemplate-webapp",
+                "linkedTemplate-ase-hub-vnet-link"                
             ],
             "properties": {
                 "mode": "Incremental",

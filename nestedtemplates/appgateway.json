@@ -107,7 +107,7 @@
                     "properties": {
                     "BackendAddresses": [
                         {
-                        "fqdn": "[concat(parameters('aseName'),'.',parameters('webAppName'),'.appserviceenvironment.net')]"
+                        "fqdn": "[concat(parameters('webAppName'),'.',parameters('aseName'),'.appserviceenvironment.net')]"
                         }
                     ]
                     }
