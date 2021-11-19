@@ -273,7 +273,8 @@
       "bastionPublicIpName": "[concat(parameters('resourceNamePrefix'),'-bastion-pip')]",
       "sqldbNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/sqldb.json', parameters('_artifactsLocationSasToken')))]",
       "sqldbConnectionStringName": "dbcnstr",      
-      "secretsqlcnstr": "[concat('Server=tcp:',parameters('sqlServerName'),'.database.windows.net,1433;Initial Catalog=',parameters('sqldatabasename'), ';User ID=', parameters('sqlAdministratorLogin'), ';Password=', parameters('sqlAdministratorPassword'),';')]"
+      "secretsqlcnstr": "[concat('Server=tcp:',parameters('sqlServerName'),'.database.windows.net,1433;Initial Catalog=',parameters('sqldatabasename'), ';User ID=', parameters('sqlAdministratorLogin'), ';Password=', parameters('sqlAdministratorPassword'),';')]",
+      "privateLinkNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/privatelink.json', parameters('_artifactsLocationSasToken')))]"      
     },
     "resources": [       
       {
@@ -555,6 +556,49 @@
                     },
                     "sqldatabaseBacpacUrl": {
                         "value": "[parameters('sqldatabaseBacpacUrl')]"
+                    }
+                }
+            }
+    },
+     {
+            "comments": "privatelink.json nested ARM template for SQL endpoint",
+            "name": "linkedTemplate-sql-private-link",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "linkedTemplate-sql-db",                
+                "linkedTemplate-hubspoke"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('privateLinkNestedTemplateUri')]"
+                },
+                "parameters": {
+                    "prefix":{
+                        "value": "[parameters('resourceNamePrefix')]"
+                    },
+                    "suffix": {
+                        "value": "sql"
+                    },                   
+                    "resourceType": {
+                        "value": "Microsoft.Sql/servers"
+                    },
+                    "resourceName": {
+                        "value": "[parameters('sqlServerName')]"
+                    },
+                    "groupType": {
+                        "value": "sqlServer"
+                    },
+                    "vnet" :{
+                        "value": "[parameters('spokevnetName')]"
+                    },
+                    "subnet": {
+                        "value": "[parameters('sqlSubnetName')]"
+                    },
+                    "privateDNSZoneName": {
+                        "value": "privatelink.database.windows.net"
                     }
                 }
             }
