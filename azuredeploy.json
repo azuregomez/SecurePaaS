@@ -484,7 +484,7 @@
                         "value": "[parameters('hubvnetName')]"
                     },         
                     "suffix" : {
-                        "value": "ase-spoke-link"
+                        "value": "ase-hub-link"
                     },                              
                      "privateDNSZoneName": {
                         "value": "[concat(parameters('asename'),'.appserviceenvironment.net')]"
