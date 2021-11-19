@@ -246,9 +246,23 @@
         },
         "sqldatabaseBacpacUrl":{
           "type": "string",
-          "defaultValue": "https://storagegomez.blob.core.windows.net/public/sports.bacpac",
+          "defaultValue": "https://storagegomez.blob.core.windows.net/public/sports.bacpac?sv=2020-04-08&st=2021-11-19T15%3A46%3A02Z&se=2025-12-31T15%3A46%3A00Z&sr=b&sp=r&sig=lXO0hf1AisApM1a%2F%2B%2FOX1ocQH7Aa8GXTtfk96nekCts%3D",
           "metadata": {
             "description": "sql server bacpac location"
+          }
+        },
+         "keyvaultname":{
+          "type": "string",
+          "defaultValue": "[concat(parameters('resourceNamePrefix'),'-keyvault')]",
+          "metadata": {
+              "description": "Key Vault Name."
+          }
+        }, 
+         "cnStringSecretName":{
+          "type": "string",
+          "defaultValue": "dbcnstr",
+          "metadata": {
+            "description": "DB cnstring secret name"
           }
         },
         "appgwyName":{
@@ -257,6 +271,14 @@
           "metadata": {
               "description": "App Gateway Name."
           }
+        },
+        "azureFirewallName": {
+            "type": "string",
+            "defaultValue" : "[concat(parameters('resourceNamePrefix'),'-firewall')]"
+        },
+        "deployFirewall": {
+            "type": "bool",
+            "defaultValue": true
         }
     },
     "variables":{
@@ -269,11 +291,15 @@
       "cnStrNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/cnstr.json', parameters('_artifactsLocationSasToken')))]",
       "appgatewayNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/appgateway.json', parameters('_artifactsLocationSasToken')))]",
       "wafSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubvnetName'), parameters('wafSubnetName'))]",                              
+      "sqlSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('spokevnetName'), parameters('sqlSubnetName'))]",
       "bastionName" : "[concat(parameters('resourceNamePrefix'),'-bastion')]",
       "bastionPublicIpName": "[concat(parameters('resourceNamePrefix'),'-bastion-pip')]",
       "sqldbNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/sqldb.json', parameters('_artifactsLocationSasToken')))]",
+      "sqlfirewallNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/sqlfirewall.json', parameters('_artifactsLocationSasToken')))]",
+      "sqlnoPublicNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/sqlnopublic.json', parameters('_artifactsLocationSasToken')))]",
       "sqldbConnectionStringName": "dbcnstr",      
-      "secretsqlcnstr": "[concat('Server=tcp:',parameters('sqlServerName'),'.database.windows.net,1433;Initial Catalog=',parameters('sqldatabasename'), ';User ID=', parameters('sqlAdministratorLogin'), ';Password=', parameters('sqlAdministratorPassword'),';')]",
+      "secretsqlcnstr": "[concat('Server=tcp:',parameters('sqlServerName'),'.database.windows.net,1433;Initial Catalog=',parameters('sqldatabasename'), ';User ID=', parameters('sqlAdministratorLogin'), ';Password=', parameters('sqlAdministratorPassword'),';')]",      
+      "akvNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/keyvault.json', parameters('_artifactsLocationSasToken')))]",
       "privateLinkNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/privatelink.json', parameters('_artifactsLocationSasToken')))]"      
     },
     "resources": [       
@@ -528,6 +554,36 @@
             }
     },
     {
+            "comments": "cnstr.json nested ARM template for connection string",
+            "name": "linkedTemplate-cnstr",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [                
+                "linkedTemplate-webapp",
+                "linkedTemplate-keyvault",
+                "linkedTemplate-msdeploy",
+                "linkedTemplate-keyvault-spoke-vnet-link"                
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('cnStrNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "webAppName":{
+                        "value": "[parameters('webAppName')]"
+                    },
+                    "cnStrName":{
+                        "value": "[parameters('cnStringSecretName')]"
+                    },
+                    "cnStrValue":{
+                        "value": "[concat('@Microsoft.KeyVault(SecretUri=',reference(resourceId('Microsoft.Resources/deployments', 'linkedTemplate-keyvault')).outputs.secretUri.value , ')')]"
+                    }
+                }
+            }
+    },
+    {
             "comments": "sqldb.json nested ARM template for SQL server and database with bacpac deployed",
             "name": "linkedTemplate-sql-db",
             "type": "Microsoft.Resources/deployments",
@@ -604,6 +660,182 @@
             }
     },
     {
+            "comments": "sqlfirewall.json nested ARM template for SQL firewall",
+            "name": "linkedTemplate-sql-firewall",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "linkedTemplate-sql-private-link"                
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('sqlfirewallNestedTemplateUri')]"
+                },
+                "parameters": {
+                    "sqlserverName":{
+                        "value": "[parameters('sqlServerName')]"
+                    },
+                    "privateEndpointSubnetId": {
+                        "value": "[variables('sqlSubnetRef')]"
+                    }                    
+                }
+            }
+    },
+     {
+            "comments": "sqlnopublic.json nested ARM template for SQL public access",
+            "name": "linkedTemplate-sql-nopublic",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "linkedTemplate-sql-firewall"                
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('sqlnoPublicNestedTemplateUri')]"
+                },
+                "parameters": {
+                    "sqlserverName":{
+                        "value": "[parameters('sqlServerName')]"
+                    }                   
+                }
+            }
+    },
+     {
+            "comments": "dnsvnetlink.json nested ARM template for SQL/Spoke link",
+            "name": "linkedTemplate-sql-hub-vnet-link",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "linkedTemplate-sql-private-link"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('dnsvnetLinkNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "vnet" :{
+                        "value": "[parameters('spokevnetName')]"
+                    },                    
+                    "suffix" : {
+                        "value": "sql-link"
+                    },
+                    "privateDNSZoneName": {
+                        "value": "privatelink.database.windows.net"
+                    }
+                }
+            }
+    },
+    {
+            "comments": "keyvault.json nested ARM template for AKV",
+            "name": "linkedTemplate-keyvault",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [                
+                "linkedTemplate-webapp",
+                "linkedTemplate-hubspoke"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('akvNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "keyVaultName":{
+                        "value": "[parameters('keyvaultname')]"
+                    },                    
+                    "ADUserObjectID":{
+                        "value": "[parameters('ADUserObjectID')]"
+                    },
+                    "webAppName":{
+                        "value": "[parameters('webAppName')]"
+                    },
+                    "secretname":{
+                        "value": "[variables('sqldbConnectionStringName')]"
+                    },
+                    "secretvalue":{
+                        "value": "[variables('secretsqlcnstr')]"
+                    }
+                }
+            }
+    },
+    {
+            "comments": "privatelink.json nested ARM template for Keyvault",
+            "name": "linkedTemplate-keyvault-private-link",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "linkedTemplate-keyvault",                
+                "linkedTemplate-hubspoke"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('privateLinkNestedTemplateUri')]"
+                },
+                "parameters": {
+                    "prefix":{
+                        "value": "[parameters('resourceNamePrefix')]"
+                    },
+                    "suffix": {
+                        "value": "keyvault"
+                    },                   
+                    "resourceType": {
+                        "value": "Microsoft.KeyVault/vaults"
+                    },
+                    "resourceName": {
+                        "value": "[parameters('keyvaultName')]"
+                    },
+                    "groupType": {
+                        "value": "vault"
+                    },
+                    "vnet" :{
+                        "value": "[parameters('spokevnetName')]"
+                    },
+                    "subnet": {
+                        "value": "[parameters('keyvaultSubnetName')]"
+                    },
+                    "privateDNSZoneName": {
+                        "value": "privatelink.vaultcore.azure.net"
+                    }
+                }
+            }
+    },
+    {
+            "comments": "dnsvnetlink.json nested ARM template for Keyvault/Spoke link",
+            "name": "linkedTemplate-keyvault-spoke-vnet-link",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "linkedTemplate-keyvault-private-link"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('dnsvnetLinkNestedTemplateUri')]"
+                },
+                "parameters": {                   
+                    "vnet" :{
+                        "value": "[parameters('spokevnetName')]"
+                    },                    
+                    "suffix" : {
+                        "value": "akv-link"
+                    },
+                    "privateDNSZoneName": {
+                        "value": "privatelink.vaultcore.azure.net"
+                    }
+                }
+            }
+    }, 
+    {
             "comments": "appgateway.json nested ARM template for App Gateway",
             "name": "linkedTemplate-appgateway",
             "type": "Microsoft.Resources/deployments",
@@ -611,7 +843,8 @@
             "dependsOn": [                
                 "linkedTemplate-hubspoke",
                 "linkedTemplate-webapp",
-                "linkedTemplate-ase-hub-vnet-link"                
+                "linkedTemplate-ase-hub-vnet-link",
+                "linkedTemplate-cnstr"                
             ],
             "properties": {
                 "mode": "Incremental",
