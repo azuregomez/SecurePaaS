@@ -260,11 +260,11 @@
         },
         "sqldatabaseBacpacSasToken": {
            "type": "string",          
-           "defaultValue": "sv=2020-04-08&st=2021-11-19T15%3A46%3A02Z&se=2025-12-31T15%3A46%3A00Z&sr=b&sp=r&sig=lXO0hf1AisApM1a%2F%2B%2FOX1ocQH7Aa8GXTtfk96nekCts%3D"
+           "defaultValue": "sv=2020-04-08&st=2021-11-19T15%3A46%3A02Z&se=2025-12-31T15%3A46%3A00Z&sr=b&sp=r&sig=lXO0hf1AisApM1a%2F%2B%2FOX1ocQH7Aa8GXTtfk96nekCts%3D",
            "metadata": {
             "description": "sql server bacpac location sas token"
            } 
-        }
+        },
          "keyvaultname":{
           "type": "string",
           "defaultValue": "[concat(parameters('resourceNamePrefix'),'-keyvault')]",
