@@ -2,3 +2,5 @@
 azuredeploy.local.ps1
 azuredeploy.parameters.local.json
 log.txt
+testdeploy.json
+testdeploy.parameters.local.json

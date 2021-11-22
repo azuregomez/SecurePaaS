@@ -253,11 +253,18 @@
         },
         "sqldatabaseBacpacUrl":{
           "type": "string",
-          "defaultValue": "https://storagegomez.blob.core.windows.net/public/sports.bacpac?sv=2020-04-08&st=2021-11-19T15%3A46%3A02Z&se=2025-12-31T15%3A46%3A00Z&sr=b&sp=r&sig=lXO0hf1AisApM1a%2F%2B%2FOX1ocQH7Aa8GXTtfk96nekCts%3D",
+          "defaultValue": "https://storagegomez.blob.core.windows.net/public/sports.bacpac",
           "metadata": {
             "description": "sql server bacpac location"
           }
         },
+        "sqldatabaseBacpacSasToken": {
+           "type": "string",          
+           "defaultValue": "sv=2020-04-08&st=2021-11-19T15%3A46%3A02Z&se=2025-12-31T15%3A46%3A00Z&sr=b&sp=r&sig=lXO0hf1AisApM1a%2F%2B%2FOX1ocQH7Aa8GXTtfk96nekCts%3D"
+           "metadata": {
+            "description": "sql server bacpac location sas token"
+           } 
+        }
          "keyvaultname":{
           "type": "string",
           "defaultValue": "[concat(parameters('resourceNamePrefix'),'-keyvault')]",
@@ -303,6 +310,7 @@
       "bastionName" : "[concat(parameters('resourceNamePrefix'),'-bastion')]",
       "bastionPublicIpName": "[concat(parameters('resourceNamePrefix'),'-bastion-pip')]",
       "sqldbNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/sqldb.json', parameters('_artifactsLocationSasToken')))]",
+      "sqlbacpacNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/sqlbacpac.json', parameters('_artifactsLocationSasToken')))]",
       "sqlfirewallNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/sqlfirewall.json', parameters('_artifactsLocationSasToken')))]",
       "sqlnoPublicNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/sqlnopublic.json', parameters('_artifactsLocationSasToken')))]",
       "sqldbConnectionStringName": "dbcnstr",      
@@ -615,7 +623,7 @@
             }
     },
     {
-            "comments": "sqldb.json nested ARM template for SQL server and database with bacpac deployed",
+            "comments": "sqldb.json nested ARM template for SQL server and database",
             "name": "linkedTemplate-sql-db",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
@@ -640,14 +648,48 @@
                     },
                     "sqlDatabaseName": {
                         "value": "[parameters('sqlDatabaseName')]"
-                    },
-                    "sqldatabaseBacpacUrl": {
-                        "value": "[parameters('sqldatabaseBacpacUrl')]"
                     }
                 }
             }
     },
+    
      {
+            "comments": "sqlbacpac.json nested ARM template for bacpac schema and data",
+            "name": "linkedTemplate-sql-bacpac",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [                
+                "linkedTemplate-sql-db"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('sqlbacpacNestedTemplateUri')]"
+                },
+                "parameters": {
+                    "sqlserverName":{
+                        "value": "[parameters('sqlServerName')]"
+                    },
+                    "sqlAdministratorLogin": {
+                        "value": "[parameters('sqlAdministratorLogin')]"
+                    },                   
+                    "sqlAdministratorPassword": {
+                        "value": "[parameters('sqlAdministratorPassword')]"
+                    },
+                    "sqlDatabaseName": {
+                        "value": "[parameters('sqlDatabaseName')]"
+                    },
+                    "sqldatabaseBacpacUrl":{
+                        "value": "[parameters('sqldatabaseBacpacUrl')]"                    
+                    },
+                    "sqldatabaseBacpacSasToken": {
+                        "value": "[parameters('sqldatabaseBacpacSasToken')]"
+                    }
+                }
+            }
+    },
+    {
             "comments": "privatelink.json nested ARM template for SQL endpoint",
             "name": "linkedTemplate-sql-private-link",
             "type": "Microsoft.Resources/deployments",
@@ -696,7 +738,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "linkedTemplate-sql-private-link"                
+                "linkedTemplate-sql-private-link",
+                "linkedTemplate-sql-bacpac"
             ],
             "properties": {
                 "mode": "Incremental",

@@ -1,0 +1,57 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {              
+         "sqlServerName": {
+          "type": "string",          
+          "metadata": {
+            "description": "sql server name."
+          }
+        },
+        "sqlAdministratorLogin": {
+          "type": "string",          
+          "metadata": {
+              "description": "Username for SQL Admin."
+          }
+        },
+        "sqlAdministratorPassword": {
+            "type": "securestring",            
+            "metadata": {
+            "description": "Password for the SQL."
+            }
+        },
+        "sqlDatabaseName": {
+          "type": "string",          
+          "metadata": {
+            "description": "sql server db name."
+          }
+        },
+        "sqldatabaseBacpacUrl":{
+          "type": "string",          
+          "metadata": {
+            "description": "sql server bacpac location"
+          }
+        },
+        "sqldatabaseBacpacSasToken": {
+           "type": "string",          
+          "metadata": {
+            "description": "sql server bacpac location sas token"
+          } 
+        }
+    },   
+    "resources": [ 
+         {
+                "name": "[concat(parameters('sqlserverName'), '/', parameters('sqldatabaseName'),'/Import')]",
+                "type": "Microsoft.Sql/servers/databases/extensions",
+                "apiVersion": "2014-04-01",                
+                "properties": {
+                    "storageKeyType": "SharedAccessKey",
+                    "storageKey": "[concat('?',parameters('sqldatabaseBacpacSasToken'))]",
+                    "storageUri": "[parameters('sqldatabaseBacpacUrl')]",
+                    "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+                    "administratorLoginPassword": "[parameters('sqlAdministratorPassword')]",
+                    "operationMode": "Import"
+                }
+            }
+    ]
+}

@@ -25,13 +25,7 @@
           "metadata": {
             "description": "sql server db name."
           }
-        },
-        "sqldatabaseBacpacUrl":{
-          "type": "string",          
-          "metadata": {
-            "description": "sql server bacpac location"
-          }
-        }
+        }       
     },
     "variables" : {},
     "resources": [
@@ -79,25 +73,7 @@
             "collation": "SQL_Latin1_General_CP1_CI_AS",
             "maxSizeBytes": 1073741824,
             "requestedServiceObjectiveName": "Basic"
-          },
-          "resources": [
-            {
-                "name": "Import",
-                "type": "extensions",
-                "apiVersion": "2014-04-01",
-                "dependsOn": [
-                    "[resourceId('Microsoft.Sql/servers/databases', parameters('sqlserverName'), parameters('sqldatabaseName'))]"
-                ],
-                "properties": {
-                    "storageKeyType": "SharedAccessKey",
-                    "storageKey": "?",
-                    "storageUri": "[parameters('sqldatabaseBacpacUrl')]",
-                    "administratorLogin": "[parameters('sqlAdministratorLogin')]",
-                    "administratorLoginPassword": "[parameters('sqlAdministratorPassword')]",
-                    "operationMode": "Import"
-                }
-            }
-        ]
+          }          
         }       
       ]
     }

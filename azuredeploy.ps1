@@ -1,9 +1,10 @@
 # .\azuredeploy.ps1 -Location "East US" -Parameterfile azuredeploy.parameters.local.json    
 Param(
     [string] [parameter(Mandatory=$true)] $Location,     
+    [string] $TemplateFile = 'azuredeploy.json',
     [string] $ParameterFile = 'azuredeploy.parameters.json'
 )
-$templateFile = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($PSScriptRoot, 'azuredeploy.json'))
+$templateFilePath = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($PSScriptRoot, $TemplateFile))
 $templateParametersFile = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($PSScriptRoot, $ParameterFile))
 $params = get-content $templateParametersFile | ConvertFrom-Json
 $prefix = $params.parameters.resourcenameprefix.value
@@ -13,5 +14,5 @@ if ($null -eq (Get-AzResourceGroup -Name $rgname -Location $Location -Verbose -E
     New-AzResourceGroup -Name $rgname -Location $Location -Verbose -Force -ErrorAction Stop
 }
 $ErrorActionPreference = 'Stop'
-New-AzResourceGroupDeployment -ResourceGroupName $rgname -TemplateFile $templateFile -TemplateParameterFile $templateParametersFile 
+New-AzResourceGroupDeployment -ResourceGroupName $rgname -TemplateFile $templateFilePath -TemplateParameterFile $templateParametersFile 
 write-host "ARM Deployment Complete"
