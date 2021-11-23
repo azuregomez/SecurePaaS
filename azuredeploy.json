@@ -316,7 +316,8 @@
       "sqldbConnectionStringName": "dbcnstr",      
       "secretsqlcnstr": "[concat('Server=tcp:',parameters('sqlServerName'),'.database.windows.net,1433;Initial Catalog=',parameters('sqldatabasename'), ';User ID=', parameters('sqlAdministratorLogin'), ';Password=', parameters('sqlAdministratorPassword'),';')]",      
       "akvNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/keyvault.json', parameters('_artifactsLocationSasToken')))]",
-      "privateLinkNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/privatelink.json', parameters('_artifactsLocationSasToken')))]"      
+      "privateLinkNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/privatelink.json', parameters('_artifactsLocationSasToken')))]",
+      "azfirewallNestedTemplateUri" : "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/firewall.json', parameters('_artifactsLocationSasToken')))]"
     },
     "resources": [       
       {
@@ -944,6 +945,37 @@
                     }
                 }
             }
-    }
+    },
+    {
+            "condition": "[parameters('deployFirewall')]",
+            "comments": "firewall.json nested ARM template for Az Firewall",
+            "name": "linkedTemplate-azfirewall",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [                
+                "linkedTemplate-hubspoke"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('azfirewallNestedTemplateUri')]"
+                },
+                "parameters": {                                      
+                    "firewallName":{
+                        "value": "[parameters('azureFirewallName')]"
+                    },
+                    "vnet":{
+                        "value": "[parameters('hubVnetName')]"
+                    },
+                    "allowSource":{
+                        "value": "[parameters('appServiceSubnetPrefix')]"
+                    },
+                    "allowTarget":{
+                        "value": "[parameters('sqlSubnetPrefix')]"
+                    }
+                }
+            }
+    } 
   ]
 }
