@@ -51,13 +51,43 @@
              "type": "string"
          }
     },  
+    "variables" : {
+      "sshnsgname" : "allow-ssh-nsg"
+    },
     "resources" : [
+          {
+          "comments": "Simple Network Security Group for VM subnet",
+          "type": "Microsoft.Network/networkSecurityGroups",
+          "apiVersion": "2020-05-01",
+          "name": "[variables('sshnsgname')]",
+          "location": "[resourcegroup().location]", 
+          "properties": {
+            "securityRules": [
+              {
+                "name": "allow-22",
+                "properties": {
+                  "priority": 1000,
+                  "access": "Allow",
+                  "direction": "Inbound",
+                  "destinationPortRange": "22",
+                  "protocol": "Tcp",
+                  "sourceAddressPrefix": "*",
+                  "sourcePortRange": "*",
+                  "destinationAddressPrefix": "*"
+                }
+              }
+            ]
+          }
+        },
          {
         "comments": "Hub VNet",
         "apiVersion": "2018-04-01",
         "type": "Microsoft.Network/virtualNetworks",
         "name": "[parameters('hubVnetName')]",
-        "location": "[resourcegroup().location]",        
+        "location": "[resourcegroup().location]",     
+        "dependsOn": [
+            "[resourceId('Microsoft.Network/networkSecurityGroups', variables('sshnsgname'))]"
+          ],   
         "properties": {
             "addressSpace": {
             "addressPrefixes": [
@@ -87,6 +117,9 @@
               "name": "[parameters('vmSubnetName')]",
               "properties": {
                 "addressPrefix": "[parameters('vmSubnetPrefix')]"               
+              },
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('sshnsgname'))]"
               }              
             }
         ]    

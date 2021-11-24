@@ -139,11 +139,7 @@
           "metadata": {
             "description": "Object Id of the AD user. Get using Get-AzADUser or Get-AzADServicePrincipal cmdlets"
           }
-        },                
-        "deploycode": {
-            "type": "bool",
-            "defaultValue": true
-        },
+        },                      
         "deployVM": {
             "type": "bool",
             "defaultValue": true
@@ -169,11 +165,10 @@
               "description": "VM user"
             }
         },
-        "vmpassword": {
-            "type": "string",
-            "defaultValue": "p@ssw0rd369",
+        "vmPublicKey": {
+            "type": "string",            
             "metadata": {
-              "description": "VM password"
+                "description": "Specifies the SSH rsa public key file as a string. Use ssh-keygen -t rsa -b 2048 to generate your SSH key pairs."
             }
         },
         "aseName": {
@@ -215,14 +210,7 @@
             "metadata": {
               "description": "Name of Web App"
             }
-        },
-         "sourceCodeZipUrl":{
-          "type": "string",
-          "defaultValue": "https://storagegomez.blob.core.windows.net/public/persondemo.zip?sv=2020-04-08&st=2021-11-19T15%3A56%3A38Z&se=2025-12-31T15%3A56%3A00Z&sr=b&sp=r&sig=k0IILNFs6E6zTsodoCORZLkcMD8mI0TMgAq1lcifAoQ%3D",
-           "metadata": {
-              "description": "The zip file of the code."
-            }
-        },  
+        },        
         "sqlServerName": {
           "type": "string",
           "defaultValue":"[concat(parameters('resourceNamePrefix'),'-sqlserver')]",
@@ -301,8 +289,7 @@
       "vmNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/vm.json', parameters('_artifactsLocationSasToken')))]",
       "aseNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/asev3.json', parameters('_artifactsLocationSasToken')))]",
       "dnsvnetlinkNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/dnsvnetlink.json', parameters('_artifactsLocationSasToken')))]",
-      "webappNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/webapp.json', parameters('_artifactsLocationSasToken')))]",
-      "msdeployNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/msdeploy.json', parameters('_artifactsLocationSasToken')))]",
+      "webappNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/webapp.json', parameters('_artifactsLocationSasToken')))]",      
       "cnStrNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/cnstr.json', parameters('_artifactsLocationSasToken')))]",
       "appgatewayNestedTemplateUri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/appgateway.json', parameters('_artifactsLocationSasToken')))]",
       "wafSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubvnetName'), parameters('wafSubnetName'))]",                              
@@ -436,8 +423,8 @@
                     "vmuser":{
                         "value": "[parameters('vmuser')]"
                     },
-                    "vmpassword":{
-                        "value": "[parameters('vmpassword')]"
+                    "vmPublicKey":{
+                        "value": "[parameters('vmPublicKey')]"
                     },
                     "vnetname":{
                         "value": "[parameters('hubVnetName')]"
@@ -569,39 +556,13 @@
             }
     },
     {
-            "comments": "msdeploy.json nested ARM template for package deployment",
-            "name": "linkedTemplate-msdeploy",
-            "condition": "[parameters('deploycode')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
-            "dependsOn": [                
-                "linkedTemplate-webapp"                           
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "contentVersion": "1.0.0.0",
-                    "uri": "[variables('msdeployNestedTemplateUri')]"
-                },
-                "parameters": {                   
-                    "webAppName":{
-                        "value": "[parameters('webAppName')]"
-                    },
-                    "packageUri":{
-                        "value": "[parameters('sourceCodeZipUrl')]"
-                    }
-                }
-            }
-    },
-    {
             "comments": "cnstr.json nested ARM template for connection string",
             "name": "linkedTemplate-cnstr",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [                
                 "linkedTemplate-webapp",
-                "linkedTemplate-keyvault",
-                "linkedTemplate-msdeploy",
+                "linkedTemplate-keyvault",     
                 "linkedTemplate-keyvault-spoke-vnet-link"                
             ],
             "properties": {

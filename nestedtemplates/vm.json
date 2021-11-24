@@ -11,9 +11,9 @@
          "vmuser" : {
             "type": "string"    
          },        
-         "vmpassword" : {
-            "type": "string"    
-         },
+        "vmPublicKey": {
+            "type": "string"        
+        },
          "vnetName" : {
             "type": "string"    
          },
@@ -67,17 +67,26 @@
                 "osProfile": {
                     "computerName": "[parameters('vmname')]",
                     "adminUsername": "[parameters('vmuser')]",
-                    "adminPassword": "[parameters('vmpassword')]"                    
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                        "publicKeys": [
+                            {
+                            "path": "[concat('/home/', parameters('vmuser'), '/.ssh/authorized_keys')]",
+                            "keyData": "[parameters('vmPublicKey')]"
+                            }
+                        ]
+                        }
+                    }                    
                 },
                 "storageProfile": {
                     "imageReference": {
-                            "publisher": "MicrosoftWindowsServer",
-                            "offer": "WindowsServer",
-                            "sku": "2019-Datacenter",
+                            "publisher": "Canonical",
+                            "offer": "UbuntuServer",
+                            "sku": "18.04-LTS",
                             "version": "latest"
                     },
-                    "osDisk": {
-                        "caching": "ReadWrite",
+                    "osDisk": {                        
                         "createOption": "FromImage"
                     }                                 
                 },
