@@ -81,7 +81,7 @@
         },
          {
         "comments": "Hub VNet",
-        "apiVersion": "2018-04-01",
+        "apiVersion": "2020-11-01",
         "type": "Microsoft.Network/virtualNetworks",
         "name": "[parameters('hubVnetName')]",
         "location": "[resourcegroup().location]",     
@@ -116,11 +116,11 @@
             {
               "name": "[parameters('vmSubnetName')]",
               "properties": {
-                "addressPrefix": "[parameters('vmSubnetPrefix')]"               
-              },
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('sshnsgname'))]"
-              }              
+                "addressPrefix": "[parameters('vmSubnetPrefix')]",
+                 "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('sshnsgname'))]"
+                  } 
+              }                          
             }
         ]    
       }        
